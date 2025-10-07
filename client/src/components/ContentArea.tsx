@@ -1,25 +1,35 @@
-import { FileText } from 'lucide-react';
-import  ContentHeader from './ContentHeader';
-import type{ MenuItem } from './SideBar';
+import ContentHeader from "./ContentHeader";
+import ContentCard from "./ContentCard";
+import AddContentModal from "./AddContentModal";
+import type { MenuItem } from "./SideBar";
+import type { ContentItem } from "../App";
 
 interface ContentAreaProps {
   activeItem: string;
   menuItems: MenuItem[];
-  onShareBrain?: () => void;
-  onAddContent?: () => void;
+  contents: ContentItem[];
+  showAddModal: boolean;
+  setShowAddModal: (value: boolean) => void;
+  onAddContent: (item: ContentItem) => void;
+  onDelete: (id: number) => void;
+  onShare: (id: number) => void;
 }
 
-export default function ContentArea({ 
-  activeItem, 
-  menuItems, 
-  onShareBrain, 
-  onAddContent 
+export default function ContentArea({
+  activeItem,
+  menuItems,
+  contents,
+  showAddModal,
+  setShowAddModal,
+  onAddContent,
+  onDelete,
+  onShare,
 }: ContentAreaProps) {
-  const currentMenuItem = menuItems.find(item => item.id === activeItem);
+  const currentMenuItem = menuItems.find((item) => item.id === activeItem);
 
   return (
     <div className="flex-1 bg-neutral-900 flex flex-col">
-      {/* Content Header */}
+      {/* Header */}
       <div className="border-b border-neutral-800 bg-neutral-900/50 backdrop-blur-sm">
         <div className="px-8 py-6 flex items-center justify-between">
           <div>
@@ -30,50 +40,37 @@ export default function ContentArea({
               Manage your {activeItem}
             </p>
           </div>
-          
-          <ContentHeader 
-            onShareBrain={onShareBrain}
-            onAddContent={onAddContent}
-          />
+
+          <ContentHeader onAddContent={() => setShowAddModal(true)} />
         </div>
       </div>
 
-      {/* Content Body */}
+      {/* Body */}
       <div className="flex-1 p-8 overflow-auto">
-        <div className="max-w-4xl">
-          <div className="grid grid-cols-1 gap-4">
-            {[1, 2, 3].map((item) => {
-              const Icon = currentMenuItem?.icon || FileText;
-              
-              return (
-                <div 
-                  key={item}
-                  className="p-6 bg-neutral-800 rounded-lg border border-neutral-700 hover:border-neutral-600 transition-colors"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 bg-neutral-700 rounded-lg">
-                      <Icon className="w-5 h-5 text-blue-400" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-white font-semibold mb-2">
-                        Sample {currentMenuItem?.label} Item {item}
-                      </h3>
-                      <p className="text-neutral-400 text-sm">
-                        This is a placeholder for your {activeItem}. Click "Add Content" to start adding items to your Second Brain.
-                      </p>
-                      <div className="mt-3 flex items-center gap-2 text-xs text-neutral-500">
-                        <span>Added 2 days ago</span>
-                        <span>•</span>
-                        <span>Last viewed 1 hour ago</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+        <div className="grid grid-cols-1 gap-4 max-w-4xl">
+          {contents.length === 0 ? (
+            <p className="text-neutral-500 text-sm">
+              No {activeItem} yet. Click “Add Content” to create one.
+            </p>
+          ) : (
+            contents.map((item) => (
+              <ContentCard
+                key={item.id}
+                item={item}
+                onDelete={() => onDelete(item.id)}
+                onShare={() => onShare(item.id)}
+              />
+            ))
+          )}
         </div>
       </div>
+
+      {/* Add Modal */}
+      <AddContentModal
+        open={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSubmit={onAddContent}
+      />
     </div>
   );
 }
